@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Microfinance BD &#8212; Grameen-style weekly loan calculator</title>
+<meta name="description" content="Offline bilingual microfinance loan calculator for Bangladesh: flat service-charge and declining-balance weekly instalments, repayment schedule, method comparison, savings estimator and history.">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <div class="head-row">
+      <div>
+        <h1 id="app-title">Microfinance BD</h1>
+        <p id="app-sub" class="sub">Grameen-style weekly loan calculator &#8212; offline</p>
+      </div>
+      <button id="lang-btn" class="btn">&#2476;&#2494;&#2434;&#2482;&#2494;</button>
+    </div>
+    <nav id="tabs" class="tabs" aria-label="Sections">
+      <button class="tab on" id="tab-calc" data-view="calc">Calculator</button>
+      <button class="tab" id="tab-compare" data-view="compare">Compare</button>
+      <button class="tab" id="tab-savings" data-view="savings">Savings</button>
+      <button class="tab" id="tab-history" data-view="history">History</button>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- ============ CALCULATOR ============ -->
+  <section id="view-calc" class="view">
+    <div class="panel">
+      <h2 id="calc-title">Loan calculator</h2>
+      <form id="calc-form" novalidate>
+        <label class="field">
+          <span id="lbl-principal">Loan amount (&#2547;)</span>
+          <input id="principal" type="number" inputmode="decimal" min="1000" max="500000" step="1" placeholder="e.g. 50000" autocomplete="off">
+        </label>
+        <label class="field">
+          <span id="lbl-rate">Service charge (%) &#8212; flat method</span>
+          <input id="rate" type="number" inputmode="decimal" min="0.1" max="100" step="0.1" placeholder="e.g. 12.5" autocomplete="off">
+        </label>
+        <label class="field">
+          <span id="lbl-weeks">Term (weeks)</span>
+          <input id="weeks" type="number" inputmode="numeric" min="4" max="104" step="1" placeholder="e.g. 46" autocomplete="off">
+        </label>
+        <fieldset class="field">
+          <legend id="lbl-method">Method</legend>
+          <label class="radio"><input type="radio" name="method" id="method-flat" value="flat" checked> <span id="lbl-flat">Flat (service charge)</span></label>
+          <label class="radio"><input type="radio" name="method" id="method-declining" value="declining"> <span id="lbl-declining">Declining (annual rate)</span></label>
+        </fieldset>
+        <p id="calc-errors" class="errors" role="alert"></p>
+        <button type="submit" id="calc-btn" class="btn primary">Calculate</button>
+      </form>
+    </div>
+
+    <div id="results" class="panel" hidden>
+      <div class="cards">
+        <div class="card"><span class="card-label" id="lbl-weekly">Weekly instalment</span><strong id="res-weekly">&#8212;</strong></div>
+        <div class="card"><span class="card-label" id="lbl-charge">Total service charge</span><strong id="res-charge">&#8212;</strong></div>
+        <div class="card"><span class="card-label" id="lbl-total">Total payable</span><strong id="res-total">&#8212;</strong></div>
+      </div>
+      <button id="save-btn" class="btn">Save to history</button>
+      <h3 id="schedule-title">Repayment schedule</h3>
+      <div class="table-wrap">
+        <table id="schedule-table">
+          <thead>
+            <tr>
+              <th id="th-week">Week</th>
+              <th id="th-inst">Instalment</th>
+              <th id="th-princ">Principal</th>
+              <th id="th-charge">Charge</th>
+              <th id="th-balance">Balance</th>
+            </tr>
+          </thead>
+          <tbody id="schedule-body"></tbody>
+          <tfoot>
+            <tr>
+              <td id="th-total">Total</td>
+              <td id="tot-inst">&#8212;</td>
+              <td id="tot-princ">&#8212;</td>
+              <td id="tot-charge">&#8212;</td>
+              <td id="tot-balance">&#8212;</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+      <p id="rounding-note" class="muted">Note: declining-method weekly figures are rounded to the paisa, so the sum of the displayed instalments can differ from the exact total payable by a few paisa. The flat schedule sums exactly.</p>
+    </div>
+  </section>
+
+  <!-- ============ COMPARE ============ -->
+  <section id="view-compare" class="view" hidden>
+    <div class="panel">
+      <h2 id="compare-title">Flat vs declining &#8212; same loan, side by side</h2>
+      <form id="cmp-form" novalidate>
+        <label class="field">
+          <span id="lbl-cmp-principal">Loan amount (&#2547;)</span>
+          <input id="cmp-principal" type="number" inputmode="decimal" min="1000" max="500000" step="1" placeholder="e.g. 50000" autocomplete="off">
+        </label>
+        <label class="field">
+          <span id="lbl-cmp-flat">Flat service charge (%)</span>
+          <input id="cmp-flat-rate" type="number" inputmode="decimal" min="0.1" max="100" step="0.1" placeholder="e.g. 12.5" autocomplete="off">
+        </label>
+        <label class="field">
+          <span id="lbl-cmp-annual">Declining annual rate (%)</span>
+          <input id="cmp-annual-rate" type="number" inputmode="decimal" min="0.1" max="100" step="0.1" placeholder="e.g. 20" autocomplete="off">
+        </label>
+        <label class="field">
+          <span id="lbl-cmp-weeks">Term (weeks)</span>
+          <input id="cmp-weeks" type="number" inputmode="numeric" min="4" max="104" step="1" placeholder="e.g. 46" autocomplete="off">
+        </label>
+        <p id="cmp-errors" class="errors" role="alert"></p>
+        <button type="submit" id="cmp-btn" class="btn primary">Compare</button>
+      </form>
+    </div>
+    <div id="cmp-results" class="panel" hidden>
+      <p id="cmp-badge" class="badge"></p>
+      <div class="compare-grid">
+        <div class="card">
+          <span class="card-label" id="lbl-cmp-flat-total">Flat total payable</span>
+          <strong id="cmp-flat-total">&#8212;</strong>
+          <span class="card-sub" id="cmp-flat-weekly">&#8212;</span>
+        </div>
+        <div class="card">
+          <span class="card-label" id="lbl-cmp-dec-total">Declining total payable</span>
+          <strong id="cmp-declining-total">&#8212;</strong>
+          <span class="card-sub" id="cmp-declining-weekly">&#8212;</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ SAVINGS ============ -->
+  <section id="view-savings" class="view" hidden>
+    <div class="panel">
+      <h2 id="savings-title">Weekly savings estimator</h2>
+      <p id="savings-intro" class="muted">Many MFIs collect a small compulsory weekly savings amount with each instalment. See what it adds up to.</p>
+      <form id="sav-form" novalidate>
+        <label class="field">
+          <span id="lbl-sav-weekly">Weekly savings (&#2547;)</span>
+          <input id="sav-weekly" type="number" inputmode="decimal" min="1" max="100000" step="1" placeholder="e.g. 50" autocomplete="off">
+        </label>
+        <label class="field">
+          <span id="lbl-sav-weeks">Number of weeks</span>
+          <input id="sav-weeks" type="number" inputmode="numeric" min="1" max="520" step="1" placeholder="e.g. 46" autocomplete="off">
+        </label>
+        <p id="sav-errors" class="errors" role="alert"></p>
+        <button type="submit" id="sav-btn" class="btn primary">Estimate</button>
+      </form>
+      <p id="sav-result" class="result-line" hidden><span id="lbl-sav-total">Total savings</span>: <strong id="sav-total">&#8212;</strong></p>
+    </div>
+  </section>
+
+  <!-- ============ HISTORY ============ -->
+  <section id="view-history" class="view" hidden>
+    <div class="panel">
+      <h2 id="history-title">Saved calculations</h2>
+      <p id="history-empty" class="muted">No saved calculations yet. Run a calculation and tap &#8220;Save to history&#8221;.</p>
+      <ul id="history-list" class="history"></ul>
+    </div>
+    <div class="panel">
+      <button id="export-btn" class="btn">Export JSON</button>
+      <label class="field">
+        <span id="lbl-import">Import JSON</span>
+        <textarea id="import-text" rows="4" placeholder="Paste exported history JSON here&#8230;"></textarea>
+      </label>
+      <button id="import-btn" class="btn">Import JSON</button>
+      <p id="import-msg" class="msg" role="status"></p>
+      <label class="field">
+        <span id="lbl-clear">Type DELETE to clear all history</span>
+        <input id="clear-input" type="text" placeholder="DELETE" autocomplete="off">
+      </label>
+      <button id="clear-btn" class="btn danger">Clear all history</button>
+      <p id="clear-msg" class="msg" role="status"></p>
+    </div>
+  </section>
+
+</main>
+
+<footer class="wrap">
+  <p id="foot-disclaimer">Educational estimates only &#8212; actual MFI terms vary by institution and loan product. This is not financial advice. All data stays on your device.</p>
+</footer>
+
+<div id="toast" class="toast" role="status"></div>
+
+<script src="js/logic.js"></script>
+<script src="js/i18n.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
